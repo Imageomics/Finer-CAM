@@ -80,7 +80,7 @@ Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/
           --classifier_path <path_to_classifier_model> \
           --model_path <path_to_dino_model> \
           --dataset_path <path_to_dataset_or_image_list> \
-          --save_dir <path_to_save_results>
+          --save_path <path_to_save_results>
      ```
 
 
