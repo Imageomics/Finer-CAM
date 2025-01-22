@@ -125,11 +125,11 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_dir, device):
     return 0
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Perform GradCAM on a dataset')
-    parser.add_argument('--save_dir', type=str, required=True, help='Directory to save GradCAM results')
+    parser = argparse.ArgumentParser(description='Perform Finer-CAM on a dataset')
     parser.add_argument('--classifier_path', type=str, required=True, help='Path to the classifier model')
-    parser.add_argument('--model_path', type=str, required=True, help='Path to the DINO model')
-    parser.add_argument('--image_paths', type=str, required=True, help='Path to the dataset or image list file')
+    parser.add_argument('--model_path', type=str, required=True, help='Path to the pretrained model')
+    parser.add_argument('--dataset_path', type=str, required=True, help='Path to the valset')
+    parser.add_argument('--save_path', type=str, required=True, help='Path to save CAMs')
     args = parser.parse_args()
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 

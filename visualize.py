@@ -103,7 +103,7 @@ def main(args):
         cam_dict = np.load(cam_path, allow_pickle=True).item()
 
 
-        for key in ['w1', 'w1-w2', 'w1-w3', 'aggregate']:
+        for key in ['GradCAM', 'Finer_diff_1', 'Finer_diff_2', 'Finer_agg']:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 cams = outputs.get('highres', None)
@@ -146,9 +146,9 @@ def main(args):
         cv2.imwrite(output_path, concatenated_image)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='GradCAM Visualization')
-    parser.add_argument('--dataset_dir', type=str, required=True, help='Path to the dataset directory')
-    parser.add_argument('--cam_dir', type=str, required=True, help='Path to the CAM directory')
-    parser.add_argument('--save_dir', type=str, required=True, help='Directory to save visualizations')
+    parser = argparse.ArgumentParser(description='Visualization')
+    parser.add_argument('--dataset_path', type=str, required=True, help='Path to the dataset directory')
+    parser.add_argument('--cams_path', type=str, required=True, help='Path to the CAMs directory')
+    parser.add_argument('--save_dir', type=str, required=True, help='Path to save visualizations')
     args = parser.parse_args()
     main(args)

@@ -1,6 +1,6 @@
 
 # Finer-CAM : Spotting the Difference Reveals Finer Details for Visual Explanation
-Official implementation of "Finer-CAM  [[arxiv]](link)". 
+Official implementation of "Finer-CAM [[arxiv]](https://arxiv.org/pdf/2501.11309)".
 
 CAM methods highlight image regions influencing predictions but often struggle in fine-grained tasks due to shared feature activation across similar classes. We propose **Finer-CAM**, which explicitly compares the target class with similar ones, suppressing shared features and emphasizing unique, discriminative details.
 
@@ -42,7 +42,7 @@ pip install numpy opencv-python ftfy regex tqdm ttach tensorboard lxml cython sc
    ```bash
    unzip datasets/stanford_cars.zip -d datasets/
 
-3. The structure of `/your_home_dir/datasets/`should be organized as follows:
+3. The structure of `datasets/`should be organized as follows:
 
 ```
 datasets/
@@ -66,7 +66,7 @@ datasets/
 ```
 
 ### Preparing pre-trained model
-Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth) and put it to `/your_home_dir/pretrained_models/dinov2`.
+Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth) and put it to `pretrained_models/dinov2`.
 
 ## Usage
 
@@ -76,10 +76,11 @@ Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/
 
    - Execute the `generate_cam.py` script with the appropriate arguments using the following command:
      ```bash
-     python generate_cam.py --save_dir <path_to_save_results> \
-                            --classifier_path <path_to_classifier_model> \
-                            --model_path <path_to_dino_model> \
-                            --image_paths <path_to_dataset_or_image_list>
+      python generate_cam.py \
+          --classifier_path <path_to_classifier_model> \
+          --model_path <path_to_dino_model> \
+          --dataset_path <path_to_dataset_or_image_list> \
+          --save_dir <path_to_save_results>
      ```
 
 
@@ -91,9 +92,9 @@ Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/
 
    - Execute the `visualize.py` script with the appropriate arguments using the following command:
      ```bash
-     python visualize.py --dataset_dir <path_to_dataset_directory> \
-                         --cam_dir <path_to_cam_directory> \
-                         --save_dir <path_to_save_visualizations>
+     python visualize.py --dataset_path <path_to_dataset_directory> \
+                         --cams_path <path_to_cams_directory> \
+                         --save_path <path_to_save_visualizations>
      ```
 
 
@@ -109,12 +110,16 @@ We utilized code from:
 - [clip-es](https://github.com/linyq2117/CLIP-ES)  
 - [clip](https://github.com/openai/CLIP)
 
-  Thanks for their wonderful works.
+Thanks for their wonderful works.
 
 
 # Citation
 If you find this repository useful, please consider citing our work :pencil: and giving a star :star2: :
 ```
-@article{
+@article{zhang2025finer,
+  title={Finer-CAM: Fine-grained Visual Interpretability through Class-Specific Gradient Refinements},
+  author={Ziheng Zhang and Jianyang Gu and Arpita Chowdhury and Zheda Mai and David Carlyn and Tanya Berger-Wolf and Yu Su and Wei-Lun Chao},
+  journal={arXiv preprint arXiv:2501.11309},
+  year={2025},
 }
 ```
