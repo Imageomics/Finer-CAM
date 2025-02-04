@@ -8,20 +8,7 @@ from pytorch_grad_cam.activations_and_gradients import ActivationsAndGradients
 from pytorch_grad_cam.utils.image import scale_cam_image
 from pytorch_grad_cam.utils.svd_on_activations import get_2d_projection
 
-class DiffCategoryTarget:
-    def __init__(self, class_n_idx: int, class_k_idx: int, class_x_idx: int, class_y_idx: int, alpha: float):
-        self.class_n_idx = class_n_idx  
-        self.class_k_idx = class_k_idx  
-        self.class_x_idx = class_x_idx
-        self.class_y_idx = class_y_idx
-        self.alpha = alpha
-
-    def __call__(self, model_output):
-        wn = model_output[..., self.class_n_idx]
-        wk = model_output[..., self.class_k_idx]
-        wx = model_output[..., self.class_x_idx]
-        wy = model_output[..., self.class_y_idx]
-        return ((wn - self.alpha * wk) + (wn - self.alpha * wx) + (wn - self.alpha * wy)) / 3
+ 
 
 class BaseCAM:
     def __init__(
@@ -94,62 +81,44 @@ class BaseCAM:
             cam = weighted_activations.sum(axis=1)
         return cam
 
-    def forward(self,
-                input_tensor: torch.Tensor,
-                targets: List[DiffCategoryTarget] = None,
-                target_size=None,
-                eigen_smooth: bool = False,
-                alpha: float = 0.6,
-                n: int = 0,
-                k: int = 1,
-                x: int = 2,
-                y: int = 3,
-                true_label_idx: int = None,  # Pass the true label index
-                ) -> np.ndarray:
+    def forward(
+        self, input_tensor: torch.Tensor, targets: List[torch.nn.Module], eigen_smooth: bool = False
+    ) -> np.ndarray:
+        input_tensor = input_tensor.to(self.device)
 
         if self.compute_input_gradient:
             input_tensor = torch.autograd.Variable(input_tensor, requires_grad=True)
 
-        outputs = self.activations_and_grads(input_tensor)
+        self.outputs = outputs = self.activations_and_grads(input_tensor)
 
         if targets is None:
-            if isinstance(outputs, (list, tuple)):
-                output_data = outputs[0].detach().cpu().numpy()
-            else:
-                output_data = outputs.detach().cpu().numpy()
-
-            sorted_indices = np.argsort(-output_data, axis=-1)
-            for i in range(sorted_indices.shape[0]):
-                current_sorted_indices = np.delete(sorted_indices[i], np.where(sorted_indices[i] == true_label_idx))
-                sorted_indices[i] = np.insert(current_sorted_indices, 0, true_label_idx)
-            
-            targets = []
-            for i in range(sorted_indices.shape[0]):
-                # Determine class_n_idx (either true label index or n-th highest predicted class)
-                class_n_idx = int(sorted_indices[i, n])
-
-                # Determine class_k_idx, class_x_idx, and class_y_idx
-                class_k_idx = int(sorted_indices[i, k]) if k is not None else None
-                class_x_idx = int(sorted_indices[i, x]) if x is not None else None
-                class_y_idx = int(sorted_indices[i, y]) if y is not None else None
-
-                # Create DiffCategoryTarget
-                target = DiffCategoryTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha)
-                targets.append(target)
+            target_categories = np.argmax(outputs.cpu().data.numpy(), axis=-1)
+            targets = [ClassifierOutputTarget(category) for category in target_categories]
 
         if self.uses_gradients:
             self.model.zero_grad()
-            if isinstance(outputs, (list, tuple)):
-                loss = sum([target(output) for target, output in zip(targets, outputs)])
+            loss = sum([target(output) for target, output in zip(targets, outputs)])
+            if self.detach:
+                loss.backward(retain_graph=True)
             else:
-                loss = sum([target(output) for target, output in zip(targets, [outputs])])
-            loss.backward(retain_graph=True)
+                # keep the computational graph, create_graph = True is needed for hvp
+                torch.autograd.grad(loss, input_tensor, retain_graph = True, create_graph = True)
+                # When using the following loss.backward() method, a warning is raised: "UserWarning: Using backward() with create_graph=True will create a reference cycle"
+                # loss.backward(retain_graph=True, create_graph=True)
+            if 'hpu' in str(self.device):
+                self.__htcore.mark_step()
 
-        cam_per_layer = self.compute_cam_per_layer(input_tensor,
-                                                targets,
-                                                target_size,
-                                                eigen_smooth)
-        return self.aggregate_multi_layers(cam_per_layer), outputs, class_n_idx, class_k_idx
+        # In most of the saliency attribution papers, the saliency is
+        # computed with a single target layer.
+        # Commonly it is the last convolutional layer.
+        # Here we support passing a list with multiple target layers.
+        # It will compute the saliency image for every image,
+        # and then aggregate them (with a default mean aggregation).
+        # This gives you more flexibility in case you just want to
+        # use all conv layers for example, all Batchnorm layers,
+        # or something else.
+        cam_per_layer = self.compute_cam_per_layer(input_tensor, targets, eigen_smooth)
+        return self.aggregate_multi_layers(cam_per_layer)
 
 
     def get_target_width_height(self, input_tensor: torch.Tensor) -> Tuple[int, int]:
@@ -225,7 +194,7 @@ class BaseCAM:
 
     def __call__(self,
                  input_tensor: torch.Tensor,
-                 targets: List[DiffCategoryTarget] = None,
+                 targets: List[torch.nn.Module] = None,
                  eigen_smooth: bool = False,
                  aug_smooth: bool = False,
                  **kwargs):

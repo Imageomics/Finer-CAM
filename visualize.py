@@ -70,7 +70,7 @@ def main(args):
 
 
         class_k_idx = None
-        for key in ['w1', 'w1-w2', 'w1-w3', 'aggregate']:
+        for key in ["baseline","default", "weighted", "single"]:
             if key in gradcam_cam_dict:
                 outputs = gradcam_cam_dict[key]
                 class_k_idx = outputs.get('class_k_idx', None)
@@ -98,12 +98,11 @@ def main(args):
         vis_list.append((second_image_resized * 255).astype(np.uint8))
         labels.append(f'{class_k_label}')
 
-        cam_method_name = 'gradcam'
         cam_path = os.path.join(args.cam_dir, f"{core_name}.npy")
         cam_dict = np.load(cam_path, allow_pickle=True).item()
 
 
-        for key in ['GradCAM', 'Finer_diff_1', 'Finer_diff_2', 'Finer_agg']:
+        for key in ["baseline","default", "weighted", "single"]:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 cams = outputs.get('highres', None)
@@ -112,7 +111,7 @@ def main(args):
                 cam = cams[0].squeeze()
                 visualization = visualize_cam_on_image(original_image, cam)
                 vis_list.append(visualization)
-                labels.append(f"{cam_method_name}_{key}")
+                labels.append(f"{key}")
 
         padding_height = 40
         images_with_labels = []

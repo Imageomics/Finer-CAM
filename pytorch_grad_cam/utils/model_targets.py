@@ -107,3 +107,61 @@ class FasterRCNNBoxScoreTarget:
                 score = ious[0, index] + model_outputs["scores"][index]
                 output = output + score
         return output
+
+class DiffTarget:
+    def __init__(
+        self, 
+        class_n_idx: int = 0, 
+        class_k_idx: int = 1, 
+        class_x_idx: int = 2, 
+        class_y_idx: int = 3, 
+        alpha: float = 1.0, 
+        mode: str = "default", 
+        single_target: int = 1 
+    ):
+        """
+        mode="default"  -> Average aggregate 
+        mode="weighted"  -> Post softmax weighted
+        mode="single"    -> Direct comparison: wn - w[single_target]
+        mode="baseline"  -> Baseline method
+        """
+        self.class_n_idx = class_n_idx
+        self.class_k_idx = class_k_idx
+        self.class_x_idx = class_x_idx
+        self.class_y_idx = class_y_idx
+        self.alpha = alpha
+        self.mode = mode
+        self.single_target = single_target  
+
+    def __call__(self, model_output):
+        wn = model_output[..., self.class_n_idx]
+        w_index = model_output[..., self.single_target]  
+        
+        if self.mode == "default":
+            numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
+                        (wn - self.alpha * model_output[..., self.class_x_idx]) + \
+                        (wn - self.alpha * model_output[..., self.class_y_idx])
+            return numerator / 3
+
+        elif self.mode == "weighted":
+            prob = torch.softmax(model_output, dim=-1)
+
+            p_k = prob[..., self.class_k_idx]
+            p_x = prob[..., self.class_x_idx]
+            p_y = prob[..., self.class_y_idx]
+
+            numerator = p_k * (wn - model_output[..., self.class_k_idx]) + \
+                        p_x * (wn - model_output[..., self.class_x_idx]) + \
+                        p_y * (wn - model_output[..., self.class_y_idx])
+            denominator = p_k + p_x + p_y
+
+            return numerator / (denominator + 1e-9)
+
+        elif self.mode == "single":
+            return wn - w_index  
+
+        elif self.mode == "baseline":
+            return wn  
+
+        else:
+            raise ValueError("Invalid mode. Choose 'default', 'weighted', 'single', or 'baseline'.")

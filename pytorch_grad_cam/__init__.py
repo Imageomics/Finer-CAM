@@ -8,6 +8,8 @@ from pytorch_grad_cam.grad_cam_plusplus import GradCAMPlusPlus
 from pytorch_grad_cam.score_cam import ScoreCAM
 from pytorch_grad_cam.layer_cam import LayerCAM
 from pytorch_grad_cam.eigen_cam import EigenCAM
+from pytorch_grad_cam.finer_cam import FinerCAM
+
 from pytorch_grad_cam.eigen_grad_cam import EigenGradCAM
 from pytorch_grad_cam.kpca_cam import KPCA_CAM
 from pytorch_grad_cam.random_cam import RandomCAM
