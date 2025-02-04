@@ -20,7 +20,7 @@ class ActivationsAndGradients:
         activation = output
 
         if self.reshape_transform is not None:
-            activation = self.reshape_transform(activation)
+            activation = self.reshape_transform(activation, self.height, self.width)
         self.activations.append(activation.cpu().detach())
 
     def save_gradient(self, module, input, output):
@@ -31,12 +31,14 @@ class ActivationsAndGradients:
         # Gradients are computed in reverse order
         def _store_grad(grad):
             if self.reshape_transform is not None:
-                grad = self.reshape_transform(grad)
+                grad = self.reshape_transform(grad, self.height, self.width)
             self.gradients = [grad.cpu().detach()] + self.gradients
 
         output.register_hook(_store_grad)
 
-    def __call__(self, x):
+    def __call__(self, x, H, W):
+        self.height = H // 14
+        self.width = W // 14
         self.gradients = []
         self.activations = []
         return self.model(x)

@@ -137,13 +137,13 @@ class DiffTarget:
         wn = model_output[..., self.class_n_idx]
         w_index = model_output[..., self.single_target]  
         
-        if self.mode == "default":
+        if self.mode == "Default":
             numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
                         (wn - self.alpha * model_output[..., self.class_x_idx]) + \
                         (wn - self.alpha * model_output[..., self.class_y_idx])
             return numerator / 3
 
-        elif self.mode == "weighted":
+        elif self.mode == "Weighted":
             prob = torch.softmax(model_output, dim=-1)
 
             p_k = prob[..., self.class_k_idx]
@@ -157,11 +157,11 @@ class DiffTarget:
 
             return numerator / (denominator + 1e-9)
 
-        elif self.mode == "single":
+        elif self.mode == "Compare":
             return wn - w_index  
 
-        elif self.mode == "baseline":
+        elif self.mode == "Baseline":
             return wn  
 
         else:
-            raise ValueError("Invalid mode. Choose 'default', 'weighted', 'single', or 'baseline'.")
+            raise ValueError("Invalid mode. Choose 'Default', 'Weighted', 'Compare', or 'Baseline'.")

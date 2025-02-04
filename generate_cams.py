@@ -10,6 +10,7 @@ from tqdm import tqdm
 from pytorch_grad_cam import FinerCAM, GradCAM
 from dinov2.models.vision_transformer import vit_base
 from class_names import class_names_car
+from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 
 
 class ModifiedDINO(nn.Module):
@@ -57,21 +58,35 @@ def get_true_label_idx(class_name, class_names):
     return None
 
 
-def preprocess(image):
-    image = image.resize((224, 224), Image.BICUBIC)
-    image_np = np.array(image).astype(np.float32) / 255.0
-    mean = np.array([0.48145466, 0.4578275, 0.40821073], dtype=np.float32)
-    std = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
-    image_np = (image_np - mean) / std
-    image_tensor = torch.tensor(image_np).permute(2, 0, 1)
-    return image_tensor
+def preprocess(image, patch_size=14, max_size=1000):
+    image = image.convert("RGB")
+    h, w = image.size
+
+    if max(h, w) > max_size:
+        scale = max_size / max(h, w)
+        h = int(h * scale)
+        w = int(w * scale)
+        image = image.resize((w, h), Image.BICUBIC)
+
+    new_h = int(np.ceil(h / patch_size) * patch_size)
+    new_w = int(np.ceil(w / patch_size) * patch_size)
+
+    transform = Compose([
+        Resize((new_h, new_w), interpolation=Image.BICUBIC),
+        ToTensor(),
+        Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711]),
+    ])
+
+    image_tensor = transform(image).to(torch.float32)
+    
+    return image_tensor, new_h, new_w
 
 
-def run_finer_cam_on_dataset(dataset_path, cam, preprocess_fn, save_dir, device):
+def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
     """
     Run FinerCAM on a dataset of images.
     """
-    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)
 
     if os.path.isdir(dataset_path):
         image_list = get_image_paths_from_folder(dataset_path)
@@ -79,7 +94,7 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess_fn, save_dir, device)
         with open(dataset_path, 'r') as file:
             image_list = [line.strip() for line in file.readlines()]
 
-    modes = ["baseline", "default", "weighted", "single"]
+    modes = ["Baseline", "Default", "Weighted", "Compare"]
 
     for img_path in tqdm(image_list):
         image_filename = os.path.basename(img_path)
@@ -92,9 +107,12 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess_fn, save_dir, device)
         except Exception as e:
             print(f"Error opening {img_path}: {e}")
             continue
+        ori_h, ori_w = image_pil.size
+    
 
         true_label_idx = get_true_label_idx(class_name, class_names_car)
-        image_tensor = preprocess_fn(image_pil).unsqueeze(0).to(device)
+        image_tensor,new_h, new_w = preprocess(image_pil)
+        image_tensor = image_tensor.unsqueeze(0).to(device)
 
         results_by_mode = {}
         for mode in modes:
@@ -103,17 +121,19 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess_fn, save_dir, device)
                 targets=None,
                 target_size=None,
                 true_label_idx=true_label_idx,
-                mode=mode
+                mode=mode,
+                H = new_h,
+                W = new_w
             )
             grayscale_cam = grayscale_cam[0, :]
-            grayscale_cam_highres = cv2.resize(grayscale_cam, (224, 224))
+            grayscale_cam_highres = cv2.resize(grayscale_cam, (ori_h, ori_w))
             results_by_mode[mode] = {
                 "highres": np.array([grayscale_cam_highres], dtype=np.float16),
                 "class_n_idx": class_n_idx,
                 "class_k_idx": class_k_idx
             }
 
-        np.save(os.path.join(save_dir, new_filename), results_by_mode)
+        np.save(os.path.join(save_path, new_filename), results_by_mode)
 
 
 if __name__ == "__main__":
@@ -122,9 +142,9 @@ if __name__ == "__main__":
                         help='Path to the classifier model')
     parser.add_argument('--model_path', type=str, required=True,
                         help='Path to the pretrained model')
-    parser.add_argument('--dataset_dir', type=str, required=True,
+    parser.add_argument('--dataset_path', type=str, required=True,
                         help='Path to the validation set')
-    parser.add_argument('--save_dir', type=str, required=True,
+    parser.add_argument('--save_path', type=str, required=True,
                         help='Directory to save FinerCAM results')
     args = parser.parse_args()
 
@@ -145,4 +165,4 @@ if __name__ == "__main__":
     cam = FinerCAM(GradCAM, model=model, target_layers=target_layers,
                    reshape_transform=reshape_transform)
 
-    run_finer_cam_on_dataset(args.dataset_dir, cam, preprocess, args.save_dir, device)
+    run_finer_cam_on_dataset(args.dataset_path, cam, preprocess, args.save_path, device)

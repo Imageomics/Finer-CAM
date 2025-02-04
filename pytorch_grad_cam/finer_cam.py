@@ -25,13 +25,15 @@ class FinerCAM:
                 x: int = 2,
                 y: int = 3,
                 true_label_idx: int = None,  
-                mode: str = 'default',
+                mode: str = 'Default',
+                H : int =None,
+                W : int = None
                 ) -> np.ndarray:
 
         if self.compute_input_gradient:
             input_tensor = torch.autograd.Variable(input_tensor, requires_grad=True)
 
-        outputs = self.base_cam.activations_and_grads(input_tensor)
+        outputs = self.base_cam.activations_and_grads(input_tensor,H,W)
 
         if targets is None:
             if isinstance(outputs, (list, tuple)):
