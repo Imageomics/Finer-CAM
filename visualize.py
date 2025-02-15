@@ -57,7 +57,6 @@ def main(args):
     os.makedirs(args.save_path, exist_ok=True)
     image_paths = get_image_paths_from_folder(args.dataset_path)
 
-    # Build a mapping from normalized class name to list of image paths
     class_to_image_paths = {}
     for path in image_paths:
         class_name = os.path.basename(os.path.dirname(path))
@@ -73,13 +72,11 @@ def main(args):
         vis_list.append((original_image * 255).astype(np.uint8))
         labels.append("Original Image")
 
-        # Load the CAM dictionary once
         cam_path = os.path.join(args.cams_path, f"{core_name}.npy")
         cam_dict = np.load(cam_path, allow_pickle=True).item()
 
-        # Get the class index from the CAM data
         class_k_idx = None
-        for key in ["Baseline", "Default", "Weighted", "Compare"]:
+        for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 class_k_idx = outputs.get("class_k_idx", None)
@@ -108,8 +105,7 @@ def main(args):
         vis_list.append((second_image * 255).astype(np.uint8))
         labels.append(f"{class_k_label}")
 
-        # Process and add CAM visualizations
-        for key in ["Baseline", "Default", "Weighted", "Compare"]:
+        for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 cams = outputs.get("highres", None)

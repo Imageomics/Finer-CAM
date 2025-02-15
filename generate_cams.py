@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from pytorch_grad_cam import FinerCAM, GradCAM
-from dinov2.models.vision_transformer import vit_base
 from class_names import class_names_car
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 
@@ -94,7 +93,7 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         with open(dataset_path, 'r') as file:
             image_list = [line.strip() for line in file.readlines()]
 
-    modes = ["Baseline", "Default", "Weighted", "Compare"]
+    modes = ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]
 
     for img_path in tqdm(image_list):
         image_filename = os.path.basename(img_path)
@@ -102,28 +101,23 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         base_name = os.path.splitext(image_filename)[0]
         new_filename = f"{class_name}_{base_name}.npy"
 
-        try:
-            image_pil = Image.open(img_path).convert('RGB')
-        except Exception as e:
-            print(f"Error opening {img_path}: {e}")
-            continue
+        image_pil = Image.open(img_path).convert('RGB')
         ori_h, ori_w = image_pil.size
     
-
         true_label_idx = get_true_label_idx(class_name, class_names_car)
-        image_tensor,new_h, new_w = preprocess(image_pil)
+        image_tensor, new_h, new_w = preprocess(image_pil)
         image_tensor = image_tensor.unsqueeze(0).to(device)
 
         results_by_mode = {}
         for mode in modes:
-            grayscale_cam, _, class_n_idx, class_k_idx = cam.forward(
+            grayscale_cam, _, class_n_idx, class_k_idx = cam(
                 input_tensor=image_tensor,
                 targets=None,
                 target_size=None,
                 true_label_idx=true_label_idx,
                 mode=mode,
-                H = new_h,
-                W = new_w
+                H=new_h,
+                W=new_w
             )
             grayscale_cam = grayscale_cam[0, :]
             grayscale_cam_highres = cv2.resize(grayscale_cam, (ori_h, ori_w))
@@ -137,11 +131,9 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Perform GradCAM on a dataset')
+    parser = argparse.ArgumentParser(description='Perform Finer-CAM on a dataset')
     parser.add_argument('--classifier_path', type=str, required=True,
                         help='Path to the classifier model')
-    parser.add_argument('--model_path', type=str, required=True,
-                        help='Path to the pretrained model')
     parser.add_argument('--dataset_path', type=str, required=True,
                         help='Path to the validation set')
     parser.add_argument('--save_path', type=str, required=True,
@@ -150,13 +142,10 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    original_model = vit_base(
-        patch_size=14,
-        img_size=518,
-        init_values=1.0,
-        block_chunks=0
-    )
-    original_model.load_state_dict(torch.load(args.model_path, map_location=device))
+    original_model = torch.hub.load(
+        'facebookresearch/dinov2', 'dinov2_vitb14', pretrained=True
+    ).to(device)
+    
     num_classes = 196
     model = ModifiedDINO(original_model, args.classifier_path, num_classes)
     model = model.to(device)

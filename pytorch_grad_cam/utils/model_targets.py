@@ -131,19 +131,21 @@ class DiffTarget:
         self.class_y_idx = class_y_idx
         self.alpha = alpha
         self.mode = mode
-        self.single_target = single_target  
+        self.single_target = single_target   
+
+#["GradCAM", "Finer-Default", "Finer-Weighted", "Finer-Compare"]
 
     def __call__(self, model_output):
         wn = model_output[..., self.class_n_idx]
         w_index = model_output[..., self.single_target]  
         
-        if self.mode == "Default":
+        if self.mode == "Finer-Default":
             numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
                         (wn - self.alpha * model_output[..., self.class_x_idx]) + \
                         (wn - self.alpha * model_output[..., self.class_y_idx])
             return numerator / 3
 
-        elif self.mode == "Weighted":
+        elif self.mode == "Finer-Weighted":
             prob = torch.softmax(model_output, dim=-1)
 
             p_k = prob[..., self.class_k_idx]
@@ -157,11 +159,11 @@ class DiffTarget:
 
             return numerator / (denominator + 1e-9)
 
-        elif self.mode == "Compare":
+        elif self.mode == "Finer-Compare":
             return wn - w_index  
 
         elif self.mode == "Baseline":
             return wn  
 
         else:
-            raise ValueError("Invalid mode. Choose 'Default', 'Weighted', 'Compare', or 'Baseline'.")
+            raise ValueError("Invalid mode. Choose 'Finer-Default', 'Finer-Weighted', 'Finer-Compare', or 'Baseline'.")

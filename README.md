@@ -17,13 +17,7 @@ Experience the power of Finer-CAM with our interactive demos! Witness **accurate
 ## Reqirements
 
 ```
-# create conda env
-conda create -n finer-cam python=3.9 -y
-conda activate finer-cam
-
-# install packages
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install numpy opencv-python ftfy regex tqdm ttach tensorboard lxml cython scikit-learn matplotlib
+pip install grad-cam
 ```
 
 
@@ -65,8 +59,7 @@ datasets/
     │   ├── 000122.jpg
 ```
 
-### Preparing pre-trained model
-Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth) and put it to `pretrained_models/dinov2`.
+
 
 ## Usage
 
@@ -78,7 +71,6 @@ Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/
      ```bash
       python generate_cam.py \
           --classifier_path <path_to_classifier_model> \
-          --model_path <path_to_dino_model> \
           --dataset_path <path_to_dataset_or_image_list> \
           --save_path <path_to_save_results>
      ```
@@ -105,10 +97,8 @@ Download DINOv2 pre-trained [ViT-B/14] at [here](https://dl.fbaipublicfiles.com/
 
 We utilized code from:
 
-- [dinov2](https://github.com/facebookresearch/dinov2?tab=readme-ov-file)  
 - [pytorch_grad_cam](https://github.com/jacobgil/pytorch-grad-cam/tree/61e9babae8600351b02b6e90864e4807f44f2d4a)  
 - [clip-es](https://github.com/linyq2117/CLIP-ES)  
-- [clip](https://github.com/openai/CLIP)
 
 Thanks for their wonderful works.
 
