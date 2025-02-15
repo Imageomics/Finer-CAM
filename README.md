@@ -70,7 +70,7 @@ datasets/
    - Execute the `generate_cam.py` script with the appropriate arguments using the following command:
      ```bash
       python generate_cam.py \
-          --classifier_path <path_to_classifier_model> \
+          --classifier_path <path_to_classifier_weight> \
           --dataset_path <path_to_dataset_or_image_list> \
           --save_path <path_to_save_results>
      ```
