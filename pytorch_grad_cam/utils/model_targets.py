@@ -115,15 +115,14 @@ class DiffTarget:
         class_k_idx: int = 1, 
         class_x_idx: int = 2, 
         class_y_idx: int = 3, 
-        alpha: float = 1.0, 
-        mode: str = "default", 
-        single_target: int = 1 
+        alpha: float = 0.6, 
+        mode: str = "Finer-Default", 
     ):
         """
-        mode="default"  -> Average aggregate 
-        mode="weighted"  -> Post softmax weighted
-        mode="single"    -> Direct comparison: wn - w[single_target]
-        mode="baseline"  -> Baseline method
+        mode="finer-default"  -> Average aggregate 
+        mode="finer-weighted"  -> Post softmax weighted
+        mode="finer-compare"    -> Direct comparison: wn - wk
+        mode="finer-baseline"  -> Baseline method
         """
         self.class_n_idx = class_n_idx
         self.class_k_idx = class_k_idx
@@ -131,13 +130,9 @@ class DiffTarget:
         self.class_y_idx = class_y_idx
         self.alpha = alpha
         self.mode = mode
-        self.single_target = single_target   
-
-#["GradCAM", "Finer-Default", "Finer-Weighted", "Finer-Compare"]
 
     def __call__(self, model_output):
         wn = model_output[..., self.class_n_idx]
-        w_index = model_output[..., self.single_target]  
         
         if self.mode == "Finer-Default":
             numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
@@ -160,7 +155,7 @@ class DiffTarget:
             return numerator / (denominator + 1e-9)
 
         elif self.mode == "Finer-Compare":
-            return wn - w_index  
+            return wn - self.alpha * model_output[..., self.class_k_idx]
 
         elif self.mode == "Baseline":
             return wn  

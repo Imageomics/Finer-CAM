@@ -4,7 +4,7 @@ from typing import List
 from pytorch_grad_cam.base_cam import BaseCAM
 from pytorch_grad_cam.utils.model_targets import DiffTarget
 
-#Finer-CAM: https://arxiv.org/pdf/2501.11309
+# Finer-CAM: https://arxiv.org/pdf/2501.11309
 
 class FinerCAM:
     def __init__(self, base_method, model, target_layers, reshape_transform=None):
