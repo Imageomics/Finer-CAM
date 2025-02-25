@@ -1,0 +1,41 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Finer-CAM : Spotting the Difference
+  Reveals Finer Details for Visual Explanation
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Ziheng
+    family-names: Zhang
+  - given-names: Jianyang
+    family-names: Gu
+  - given-names: Arpita
+    family-names: Chowdhury
+  - given-names: Zheda
+    family-names: Mai
+  - given-names: David
+    family-names: Carlyn
+  - given-names: Tanya
+    family-names: Berger-Wolf
+  - given-names: Yu
+    family-names: Su
+  - given-names: Wei-Lun
+    family-names: Chao
+identifiers:
+  - type: doi
+    value: 10.48550/arXiv.2501.11309
+repository-code: 'https://github.com/Imageomics/Finer-CAM'
+keywords:
+  - explainable-ai
+  - imageomics
+  - fine-grained-classification
+  - computer-vision
+license: Apache-2.0
+commit: Finer-CAM
+version: 1.0.0
+date-released: '2025-02-25'

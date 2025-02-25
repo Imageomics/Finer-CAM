@@ -103,7 +103,7 @@ We utilized code from:
 Thanks for their wonderful works.
 
 
-# Citation
+# Citation [![Paper](https://img.shields.io/badge/Paper-10.48550%2FarXiv.2501.11309-blue)](https://arxiv.org/abs/2501.11309)
 If you find this repository useful, please consider citing our work :pencil: and giving a star :star2: :
 ```
 @article{zhang2025finer,
