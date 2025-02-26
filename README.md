@@ -1,5 +1,5 @@
 
-# Finer-CAM : Spotting the Difference Reveals Finer Details for Visual Explanation
+# Finer-CAM : Spotting the Difference Reveals Finer Details for Visual Explanation [CVPR 2025]
 Official implementation of "Finer-CAM [[arxiv]](https://arxiv.org/pdf/2501.11309)".
 
 CAM methods highlight image regions influencing predictions but often struggle in fine-grained tasks due to shared feature activation across similar classes. We propose **Finer-CAM**, which explicitly compares the target class with similar ones, suppressing shared features and emphasizing unique, discriminative details.
