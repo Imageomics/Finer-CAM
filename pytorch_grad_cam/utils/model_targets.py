@@ -108,57 +108,52 @@ class FasterRCNNBoxScoreTarget:
                 output = output + score
         return output
 
-class DiffTarget:
-    def __init__(
-        self, 
-        class_n_idx: int = 0, 
-        class_k_idx: int = 1, 
-        class_x_idx: int = 2, 
-        class_y_idx: int = 3, 
-        alpha: float = 0.6, 
-        mode: str = "Finer-Default", 
-    ):
-        """
-        mode="finer-default"  -> Average aggregate 
-        mode="finer-weighted"  -> Post softmax weighted
-        mode="finer-compare"    -> Direct comparison: wn - wk
-        mode="finer-baseline"  -> Baseline method
-        """
+class FinerDefaultTarget:
+    def __init__(self, class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha):
         self.class_n_idx = class_n_idx
         self.class_k_idx = class_k_idx
         self.class_x_idx = class_x_idx
         self.class_y_idx = class_y_idx
         self.alpha = alpha
-        self.mode = mode
 
     def __call__(self, model_output):
         wn = model_output[..., self.class_n_idx]
-        
-        if self.mode == "Finer-Default":
-            numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
-                        (wn - self.alpha * model_output[..., self.class_x_idx]) + \
-                        (wn - self.alpha * model_output[..., self.class_y_idx])
-            return numerator / 3
+        numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
+                    (wn - self.alpha * model_output[..., self.class_x_idx]) + \
+                    (wn - self.alpha * model_output[..., self.class_y_idx])
+        return numerator / 3
 
-        elif self.mode == "Finer-Weighted":
-            prob = torch.softmax(model_output, dim=-1)
 
-            p_k = prob[..., self.class_k_idx]
-            p_x = prob[..., self.class_x_idx]
-            p_y = prob[..., self.class_y_idx]
+class FinerWeightedTarget:
+    def __init__(self, class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha):
+        self.class_n_idx = class_n_idx
+        self.class_k_idx = class_k_idx
+        self.class_x_idx = class_x_idx
+        self.class_y_idx = class_y_idx
+        self.alpha = alpha
 
-            numerator = p_k * (wn - model_output[..., self.class_k_idx]) + \
-                        p_x * (wn - model_output[..., self.class_x_idx]) + \
-                        p_y * (wn - model_output[..., self.class_y_idx])
-            denominator = p_k + p_x + p_y
+    def __call__(self, model_output):
+        wn = model_output[..., self.class_n_idx]
+        prob = torch.softmax(model_output, dim=-1)
 
-            return numerator / (denominator + 1e-9)
+        p_k = prob[..., self.class_k_idx]
+        p_x = prob[..., self.class_x_idx]
+        p_y = prob[..., self.class_y_idx]
 
-        elif self.mode == "Finer-Compare":
-            return wn - self.alpha * model_output[..., self.class_k_idx]
+        numerator = p_k * (wn - model_output[..., self.class_k_idx]) + \
+                    p_x * (wn - model_output[..., self.class_x_idx]) + \
+                    p_y * (wn - model_output[..., self.class_y_idx])
+        denominator = p_k + p_x + p_y
 
-        elif self.mode == "Baseline":
-            return wn  
+        return numerator / (denominator + 1e-9)
 
-        else:
-            raise ValueError("Invalid mode. Choose 'Finer-Default', 'Finer-Weighted', 'Finer-Compare', or 'Baseline'.")
+
+class FinerCompareTarget:
+    def __init__(self, class_n_idx, class_k_idx, alpha):
+        self.class_n_idx = class_n_idx
+        self.class_k_idx = class_k_idx
+        self.alpha = alpha
+
+    def __call__(self, model_output):
+        wn = model_output[..., self.class_n_idx]
+        return wn - self.alpha * model_output[..., self.class_k_idx]

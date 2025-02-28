@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from typing import List
 from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.model_targets import DiffTarget
+from pytorch_grad_cam.utils.model_targets import FinerDefaultTarget, FinerWeightedTarget, FinerCompareTarget
 
 # Finer-CAM: https://arxiv.org/pdf/2501.11309
 
@@ -19,7 +19,7 @@ class FinerCAM:
 
     def forward(self,
                 input_tensor: torch.Tensor,
-                targets: List[DiffTarget] = None,
+                targets: List = None,
                 target_size=None,
                 eigen_smooth: bool = False,
                 alpha: float = 0.6,
@@ -56,7 +56,17 @@ class FinerCAM:
                 class_x_idx = int(sorted_indices[i, x]) if x is not None else None
                 class_y_idx = int(sorted_indices[i, y]) if y is not None else None
 
-                target = DiffTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha, mode)
+                if mode == "Finer-Default":
+                    target = FinerDefaultTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha)
+                elif mode == "Finer-Weighted":
+                    target = FinerWeightedTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha)
+                elif mode == "Finer-Compare":
+                    target = FinerCompareTarget(class_n_idx, class_k_idx, alpha)
+                elif mode == "Baseline":
+                    target = lambda output: output[..., class_n_idx]
+                else:
+                    raise ValueError("Invalid mode. Choose 'Finer-Default', 'Finer-Weighted', 'Finer-Compare', or 'Baseline'.")
+
                 targets.append(target)
 
         if self.uses_gradients:
