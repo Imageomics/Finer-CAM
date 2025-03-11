@@ -7,6 +7,12 @@ CAM methods highlight image regions influencing predictions but often struggle i
 Finer-CAM retains CAM’s efficiency, offers precise localization, and adapts to multi-modal zero-shot models, accurately activating object parts or attributes. It enhances explainability in fine-grained tasks without increasing complexity.
 
 ![images](pipeline.jpg)
+## 🗓️ TODO
+- [ ] Create a tutorial
+- [ ] Update Finer-Score-CAM
+- [ ] Merge our method into [pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam)
+
+
 
 ## Demo 
 Experience the power of Finer-CAM with our interactive demos! Witness **accurate localization** of discriminative features.
