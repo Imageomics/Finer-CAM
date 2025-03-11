@@ -22,7 +22,7 @@ class FinerCAM:
                 targets: List = None,
                 target_size=None,
                 eigen_smooth: bool = False,
-                alpha: float = 0.6,
+                alpha: float = 1,
                 n: int = 0,
                 k: int = 1,
                 x: int = 2,
@@ -48,22 +48,21 @@ class FinerCAM:
             for i in range(sorted_indices.shape[0]):
                 current_sorted_indices = np.delete(sorted_indices[i], np.where(sorted_indices[i] == true_label_idx))
                 sorted_indices[i] = np.insert(current_sorted_indices, 0, true_label_idx)
-            
+
             targets = []
             for i in range(sorted_indices.shape[0]):
-                class_n_idx = int(sorted_indices[i, n])
-                class_k_idx = int(sorted_indices[i, k]) if k is not None else None
-                class_x_idx = int(sorted_indices[i, x]) if x is not None else None
-                class_y_idx = int(sorted_indices[i, y]) if y is not None else None
-
+                main_category = int(sorted_indices[i, n])  
+                comparison_categories = [int(sorted_indices[i, idx]) for idx in [k, x, y] if idx is not None] 
+                
                 if mode == "Finer-Default":
-                    target = FinerDefaultTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha)
+                    target = FinerDefaultTarget(main_category, comparison_categories, alpha)
                 elif mode == "Finer-Weighted":
-                    target = FinerWeightedTarget(class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha)
+                    target = FinerWeightedTarget(main_category, comparison_categories, alpha)
                 elif mode == "Finer-Compare":
-                    target = FinerCompareTarget(class_n_idx, class_k_idx, alpha)
+                    comparison_category = int(sorted_indices[i, k])  
+                    target = FinerCompareTarget(main_category, comparison_category, alpha)
                 elif mode == "Baseline":
-                    target = lambda output: output[..., class_n_idx]
+                    target = lambda output: output[..., main_category]
                 else:
                     raise ValueError("Invalid mode. Choose 'Finer-Default', 'Finer-Weighted', 'Finer-Compare', or 'Baseline'.")
 
@@ -81,4 +80,4 @@ class FinerCAM:
                                                             targets,
                                                             target_size,
                                                             eigen_smooth)
-        return self.base_cam.aggregate_multi_layers(cam_per_layer), outputs, class_n_idx, class_k_idx
+        return self.base_cam.aggregate_multi_layers(cam_per_layer), outputs, main_category, comparison_categories

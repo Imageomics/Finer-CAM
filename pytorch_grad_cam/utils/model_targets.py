@@ -109,51 +109,46 @@ class FasterRCNNBoxScoreTarget:
         return output
 
 class FinerDefaultTarget:
-    def __init__(self, class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha):
-        self.class_n_idx = class_n_idx
-        self.class_k_idx = class_k_idx
-        self.class_x_idx = class_x_idx
-        self.class_y_idx = class_y_idx
+    def __init__(self, main_category, comparison_categories, alpha):
+        self.main_category = main_category
+        self.comparison_categories = comparison_categories
         self.alpha = alpha
-
+    
     def __call__(self, model_output):
-        wn = model_output[..., self.class_n_idx]
-        numerator = (wn - self.alpha * model_output[..., self.class_k_idx]) + \
-                    (wn - self.alpha * model_output[..., self.class_x_idx]) + \
-                    (wn - self.alpha * model_output[..., self.class_y_idx])
-        return numerator / 3
-
+        select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
+        
+        wn = select(self.main_category)
+        numerator = sum(wn - self.alpha * select(idx) for idx in self.comparison_categories)
+        return numerator / len(self.comparison_categories)
 
 class FinerWeightedTarget:
-    def __init__(self, class_n_idx, class_k_idx, class_x_idx, class_y_idx, alpha):
-        self.class_n_idx = class_n_idx
-        self.class_k_idx = class_k_idx
-        self.class_x_idx = class_x_idx
-        self.class_y_idx = class_y_idx
+    def __init__(self, main_category, comparison_categories, alpha):
+        self.main_category = main_category
+        self.comparison_categories = comparison_categories
         self.alpha = alpha
-
+    
     def __call__(self, model_output):
-        wn = model_output[..., self.class_n_idx]
-        prob = torch.softmax(model_output, dim=-1)
-
-        p_k = prob[..., self.class_k_idx]
-        p_x = prob[..., self.class_x_idx]
-        p_y = prob[..., self.class_y_idx]
-
-        numerator = p_k * (wn - model_output[..., self.class_k_idx]) + \
-                    p_x * (wn - model_output[..., self.class_x_idx]) + \
-                    p_y * (wn - model_output[..., self.class_y_idx])
-        denominator = p_k + p_x + p_y
-
+        select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
+        
+        wn = select(self.main_category)
+        
+        if len(model_output.shape) == 1:
+            prob = torch.softmax(model_output.unsqueeze(0), dim=-1).squeeze(0)
+        else:
+            prob = torch.softmax(model_output, dim=-1)
+            
+        weights = [prob[idx] if len(model_output.shape) == 1 else prob[..., idx] for idx in self.comparison_categories]
+        numerator = sum(w * (wn - self.alpha * select(idx)) for w, idx in zip(weights, self.comparison_categories))
+        denominator = sum(weights)
         return numerator / (denominator + 1e-9)
 
-
 class FinerCompareTarget:
-    def __init__(self, class_n_idx, class_k_idx, alpha):
-        self.class_n_idx = class_n_idx
-        self.class_k_idx = class_k_idx
+    def __init__(self, main_category, comparison_category, alpha):
+        self.main_category = main_category
+        self.comparison_category = comparison_category
         self.alpha = alpha
-
+    
     def __call__(self, model_output):
-        wn = model_output[..., self.class_n_idx]
-        return wn - self.alpha * model_output[..., self.class_k_idx]
+        select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
+        
+        return select(self.main_category) - self.alpha * select(self.comparison_category)
