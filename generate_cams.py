@@ -28,7 +28,6 @@ class ModifiedDINO(nn.Module):
         print("ModifiedDINO initialized")
 
     def forward(self, x):
-        # Use self.original_model to get features.
         features = self.original_model.forward_features(x)["x_norm_patchtokens"]
         features = features.mean(dim=1)
         logits = self.classifier(features)
@@ -104,17 +103,15 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         image_pil = Image.open(img_path).convert('RGB')
         ori_h, ori_w = image_pil.size
     
-        true_label_idx = get_true_label_idx(class_name, class_names_car)
+        target_idx = get_true_label_idx(class_name, class_names_car)
         image_tensor, new_h, new_w = preprocess(image_pil)
         image_tensor = image_tensor.unsqueeze(0).to(device)
 
         results_by_mode = {}
         for mode in modes:
-            grayscale_cam, _, class_n_idx, class_k_idx = cam(
+            grayscale_cam, _, main_category, comparison_categories = cam(
                 input_tensor=image_tensor,
-                targets=None,
-                target_size=None,
-                true_label_idx=true_label_idx,
+                target_idx=target_idx,
                 mode=mode,
                 H=new_h,
                 W=new_w
@@ -123,8 +120,8 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
             grayscale_cam_highres = cv2.resize(grayscale_cam, (ori_h, ori_w))
             results_by_mode[mode] = {
                 "highres": np.array([grayscale_cam_highres], dtype=np.float16),
-                "class_n_idx": class_n_idx,
-                "class_k_idx": class_k_idx
+                "main_category": main_category,
+                "comparison_categories": comparison_categories
             }
 
         np.save(os.path.join(save_path, new_filename), results_by_mode)

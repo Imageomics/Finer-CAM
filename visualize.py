@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import argparse
+from class_names import class_names_car
 
 def normalize_label(label):
     return ''.join(filter(str.isalnum, label.lower()))
@@ -55,7 +56,13 @@ def add_label_to_image(image, label, padding_height=40):
 def main(args):
     os.makedirs(args.save_path, exist_ok=True)
     image_paths = get_image_paths_from_folder(args.dataset_path)
-    
+
+    class_to_image_paths = {}
+    for path in image_paths:
+        class_name = os.path.basename(os.path.dirname(path))
+        normalized_class_name = normalize_label(class_name)
+        class_to_image_paths.setdefault(normalized_class_name, []).append(path)
+
     for img_path in tqdm(image_paths, desc="Processing images"):
         core_name = extract_core_name_from_image_path(img_path)
         original_image = load_and_preprocess_image(img_path)
@@ -67,6 +74,37 @@ def main(args):
 
         cam_path = os.path.join(args.cams_path, f"{core_name}.npy")
         cam_dict = np.load(cam_path, allow_pickle=True).item()
+
+        closest_comparison_idx = None
+        for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
+            if key in cam_dict:
+                outputs = cam_dict[key]
+                comparison_categories = outputs.get("comparison_categories",None)
+                closest_comparison_idx = comparison_categories[0]
+                if closest_comparison_idx is not None:
+                    break
+
+        if closest_comparison_idx is not None and 0 <= closest_comparison_idx < len(class_names_car):
+            class_k_label = class_names_car[closest_comparison_idx]
+        else:
+            class_k_label = "Unknown"
+
+        normalized_class_k_label = normalize_label(class_k_label)
+        second_img_path = None
+        if normalized_class_k_label in class_to_image_paths:
+            candidate_paths = class_to_image_paths[normalized_class_k_label]
+            if len(candidate_paths) > 1:
+                second_img_path = next((p for p in candidate_paths if p != img_path), candidate_paths[0])
+            elif len(candidate_paths) == 1:
+                second_img_path = candidate_paths[0]
+
+        # Load second image and resize it to match the original image dimensions
+        second_image = load_and_preprocess_image(second_img_path)
+        if second_image.shape[:2] != original_image.shape[:2]:
+            second_image = cv2.resize(second_image, (original_image.shape[1], original_image.shape[0]))
+
+        vis_list.append((second_image * 255).astype(np.uint8))
+        labels.append(f"{class_k_label}")
 
         for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
             if key in cam_dict:
