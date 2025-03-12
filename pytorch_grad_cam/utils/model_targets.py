@@ -108,19 +108,6 @@ class FasterRCNNBoxScoreTarget:
                 output = output + score
         return output
 
-class FinerDefaultTarget:
-    def __init__(self, main_category, comparison_categories, alpha):
-        self.main_category = main_category
-        self.comparison_categories = comparison_categories
-        self.alpha = alpha
-    
-    def __call__(self, model_output):
-        select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
-        
-        wn = select(self.main_category)
-        numerator = sum(wn - self.alpha * select(idx) for idx in self.comparison_categories)
-        return numerator / len(self.comparison_categories)
-
 class FinerWeightedTarget:
     def __init__(self, main_category, comparison_categories, alpha):
         self.main_category = main_category
@@ -142,13 +129,3 @@ class FinerWeightedTarget:
         denominator = sum(weights)
         return numerator / (denominator + 1e-9)
 
-class FinerCompareTarget:
-    def __init__(self, main_category, comparison_category, alpha):
-        self.main_category = main_category
-        self.comparison_category = comparison_category
-        self.alpha = alpha
-    
-    def __call__(self, model_output):
-        select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
-        
-        return select(self.main_category) - self.alpha * select(self.comparison_category)

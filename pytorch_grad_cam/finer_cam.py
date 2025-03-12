@@ -2,8 +2,7 @@ import numpy as np
 import torch
 from typing import List
 from pytorch_grad_cam.base_cam import BaseCAM
-from pytorch_grad_cam.utils.model_targets import FinerDefaultTarget, FinerWeightedTarget, FinerCompareTarget
-
+from pytorch_grad_cam.utils.model_targets import FinerWeightedTarget
 # Finer-CAM: https://arxiv.org/pdf/2501.11309
 
 class FinerCAM:
@@ -23,7 +22,6 @@ class FinerCAM:
                 alpha: float = 1,
                 comparison_categories: List[int] = [1, 2, 3],
                 target_idx: int = None,
-                mode: str = 'Finer-Default',
                 H: int = None,
                 W: int = None
                 ) -> np.ndarray:
@@ -48,22 +46,14 @@ class FinerCAM:
             sorted_indices[i] = np.argsort(differences)
 
         targets = []
+        main_categories = []
+        comparisons = []
         for i in range(sorted_indices.shape[0]):
             main_category = int(sorted_indices[i, 0])
             current_comparison = [int(sorted_indices[i, idx]) for idx in comparison_categories]
-            # Choose the appropriate Finer-CAM target based on the specified mode
-            if mode == "Finer-Default":
-                target = FinerDefaultTarget(main_category, current_comparison, alpha)
-            elif mode == "Finer-Weighted":
-                target = FinerWeightedTarget(main_category, current_comparison, alpha)
-            elif mode == "Finer-Compare":
-                comparison_category = int(sorted_indices[i, comparison_categories[0]])
-                target = FinerCompareTarget(main_category, comparison_category, alpha)
-            elif mode == "Baseline":
-                target = lambda output: output[..., main_category]
-            else:
-                raise ValueError("Invalid mode. Choose 'Finer-Default', 'Finer-Weighted', 'Finer-Compare', or 'Baseline'.")
-
+            main_categories.append(main_category)
+            comparisons.append(current_comparison)
+            target = FinerWeightedTarget(main_category, current_comparison, alpha)
             targets.append(target)
 
         if self.uses_gradients:
@@ -78,4 +68,4 @@ class FinerCAM:
             input_tensor, targets, target_size, eigen_smooth
         )
 
-        return self.base_cam.aggregate_multi_layers(cam_per_layer), outputs, main_category, current_comparison
+        return self.base_cam.aggregate_multi_layers(cam_per_layer), outputs, main_categories, comparisons

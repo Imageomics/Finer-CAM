@@ -76,11 +76,11 @@ def main(args):
         cam_dict = np.load(cam_path, allow_pickle=True).item()
 
         closest_comparison_idx = None
-        for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
+        for key in ["Baseline", "Finer-Default", "Finer-Compare"]:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 comparison_categories = outputs.get("comparison_categories",None)
-                closest_comparison_idx = comparison_categories[0]
+                closest_comparison_idx = comparison_categories[0][0]
                 if closest_comparison_idx is not None:
                     break
 
@@ -106,7 +106,7 @@ def main(args):
         vis_list.append((second_image * 255).astype(np.uint8))
         labels.append(f"{class_k_label}")
 
-        for key in ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]:
+        for key in ["Baseline", "Finer-Default", "Finer-Compare"]:
             if key in cam_dict:
                 outputs = cam_dict[key]
                 cams = outputs.get("highres", None)

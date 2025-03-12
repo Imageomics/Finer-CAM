@@ -92,7 +92,7 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         with open(dataset_path, 'r') as file:
             image_list = [line.strip() for line in file.readlines()]
 
-    modes = ["Baseline", "Finer-Default", "Finer-Weighted", "Finer-Compare"]
+    modes = ["Baseline", "Finer-Default", "Finer-Compare"]
 
     for img_path in tqdm(image_list):
         image_filename = os.path.basename(img_path)
@@ -109,13 +109,34 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
 
         results_by_mode = {}
         for mode in modes:
-            grayscale_cam, _, main_category, comparison_categories = cam(
-                input_tensor=image_tensor,
-                target_idx=target_idx,
-                mode=mode,
-                H=new_h,
-                W=new_w
-            )
+            # Baseline methods like GradCAM,LayerCAM
+            if mode == "Baseline":
+                grayscale_cam, _, main_category, comparison_categories = cam(
+                    input_tensor=image_tensor,
+                    target_idx=target_idx,
+                    H=new_h,
+                    W=new_w,
+                    alpha=0
+                )
+            # Finer-CAM default setting, compare with top 3 similar classes.
+            elif mode == "Finer-Default":
+                grayscale_cam, _, main_category, comparison_categories = cam(
+                    input_tensor=image_tensor,
+                    target_idx=target_idx,
+                    H=new_h,
+                    W=new_w,
+                    comparison_categories=[1,2,3]
+                )
+            # Only compare with most similar class.
+            elif mode == "Finer-Compare":
+                grayscale_cam, _, main_category, comparison_categories = cam(
+                    input_tensor=image_tensor,
+                    target_idx=target_idx,
+                    H=new_h,
+                    W=new_w,
+                    comparison_categories=[1]
+                )
+
             grayscale_cam = grayscale_cam[0, :]
             grayscale_cam_highres = cv2.resize(grayscale_cam, (ori_h, ori_w))
             results_by_mode[mode] = {
@@ -125,7 +146,6 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
             }
 
         np.save(os.path.join(save_path, new_filename), results_by_mode)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Perform Finer-CAM on a dataset')
