@@ -8,8 +8,8 @@ Finer-CAM retains CAM’s efficiency, offers precise localization, and adapts to
 
 ![images](pipeline.jpg)
 ## 🗓️ TODO
+- [x] Update Finer-Score-CAM
 - [ ] Create a tutorial
-- [ ] Update Finer-Score-CAM
 - [ ] Merge our method into [pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam)
 
 

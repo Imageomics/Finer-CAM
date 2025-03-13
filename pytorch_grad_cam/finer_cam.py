@@ -17,6 +17,7 @@ class FinerCAM:
 
     def forward(self,
                 input_tensor: torch.Tensor,
+                targets: List[torch.nn.Module],
                 target_size=None,
                 eigen_smooth: bool = False,
                 alpha: float = 1,
@@ -31,30 +32,31 @@ class FinerCAM:
 
         outputs = self.base_cam.activations_and_grads(input_tensor, H, W)
 
-        if isinstance(outputs, (list, tuple)):
-            output_data = outputs[0].detach().cpu().numpy()
-        else:
-            output_data = outputs.detach().cpu().numpy()
-
-        sorted_indices = np.empty_like(output_data, dtype=int)
-
-        # Sort indices based on similarity to the target logit,
-        # with more similar values (smaller differences) appearing first.
-        for i in range(output_data.shape[0]):
-            target_logit = output_data[i][np.argmax(output_data[i])] if target_idx is None else output_data[i][target_idx]
-            differences = np.abs(output_data[i] - target_logit)
-            sorted_indices[i] = np.argsort(differences)
-
-        targets = []
         main_categories = []
         comparisons = []
-        for i in range(sorted_indices.shape[0]):
-            main_category = int(sorted_indices[i, 0])
-            current_comparison = [int(sorted_indices[i, idx]) for idx in comparison_categories]
-            main_categories.append(main_category)
-            comparisons.append(current_comparison)
-            target = FinerWeightedTarget(main_category, current_comparison, alpha)
-            targets.append(target)
+
+        if targets is None:
+            if isinstance(outputs, (list, tuple)):
+                output_data = outputs[0].detach().cpu().numpy()
+            else:
+                output_data = outputs.detach().cpu().numpy()
+
+            sorted_indices = np.empty_like(output_data, dtype=int)
+            # Sort indices based on similarity to the target logit,
+            # with more similar values (smaller differences) appearing first.
+            for i in range(output_data.shape[0]):
+                target_logit = output_data[i][np.argmax(output_data[i])] if target_idx is None else output_data[i][target_idx]
+                differences = np.abs(output_data[i] - target_logit)
+                sorted_indices[i] = np.argsort(differences)
+
+            targets = []
+            for i in range(sorted_indices.shape[0]):
+                main_category = int(sorted_indices[i, 0])
+                current_comparison = [int(sorted_indices[i, idx]) for idx in comparison_categories]
+                main_categories.append(main_category)
+                comparisons.append(current_comparison)
+                target = FinerWeightedTarget(main_category, current_comparison, alpha)
+                targets.append(target)
 
         if self.uses_gradients:
             self.base_cam.model.zero_grad()

@@ -58,26 +58,30 @@ def get_true_label_idx(class_name, class_names):
 
 def preprocess(image, patch_size=14, max_size=1000):
     image = image.convert("RGB")
-    h, w = image.size
+    width, height = image.size
 
-    if max(h, w) > max_size:
-        scale = max_size / max(h, w)
-        h = int(h * scale)
-        w = int(w * scale)
-        image = image.resize((w, h), Image.BICUBIC)
+    if max(width, height) > max_size:
+        scale = max_size / max(width, height)
+        width = int(width * scale)
+        height = int(height * scale)
+        image = image.resize((width, height), Image.BICUBIC)
 
-    new_h = int(np.ceil(h / patch_size) * patch_size)
-    new_w = int(np.ceil(w / patch_size) * patch_size)
+    new_height_pixels = int(np.ceil(height / patch_size) * patch_size)
+    new_width_pixels = int(np.ceil(width / patch_size) * patch_size)
 
     transform = Compose([
-        Resize((new_h, new_w), interpolation=Image.BICUBIC),
+        Resize((new_height_pixels, new_width_pixels), interpolation=Image.BICUBIC),
         ToTensor(),
-        Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711]),
+        Normalize(mean=[0.48145466, 0.4578275, 0.40821073],
+                  std=[0.26862954, 0.26130258, 0.27577711]),
     ])
 
     image_tensor = transform(image).to(torch.float32)
     
-    return image_tensor, new_h, new_w
+    grid_height = new_height_pixels // patch_size
+    grid_width = new_width_pixels // patch_size
+    
+    return image_tensor, grid_height, grid_width
 
 
 def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
@@ -101,44 +105,47 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         new_filename = f"{class_name}_{base_name}.npy"
 
         image_pil = Image.open(img_path).convert('RGB')
-        ori_h, ori_w = image_pil.size
+        original_width, original_height = image_pil.size
     
         target_idx = get_true_label_idx(class_name, class_names_car)
-        image_tensor, new_h, new_w = preprocess(image_pil)
+        image_tensor, grid_height, grid_width = preprocess(image_pil)
         image_tensor = image_tensor.unsqueeze(0).to(device)
 
         results_by_mode = {}
         for mode in modes:
-            # Baseline methods like GradCAM,LayerCAM
+            # When alpha = 0, FinerCAM degrades to Baseline
             if mode == "Baseline":
                 grayscale_cam, _, main_category, comparison_categories = cam(
                     input_tensor=image_tensor,
+                    targets = None,
                     target_idx=target_idx,
-                    H=new_h,
-                    W=new_w,
+                    H=grid_height,
+                    W=grid_width,
                     alpha=0
                 )
-            # Finer-CAM default setting, compare with top 3 similar classes.
             elif mode == "Finer-Default":
+            # Our default setting: compare with the three most similar categories
                 grayscale_cam, _, main_category, comparison_categories = cam(
                     input_tensor=image_tensor,
+                    targets = None,
                     target_idx=target_idx,
-                    H=new_h,
-                    W=new_w,
+                    H=grid_height,
+                    W=grid_width,
                     comparison_categories=[1,2,3]
                 )
-            # Only compare with most similar class.
             elif mode == "Finer-Compare":
+            # Compare only with the most similar category
                 grayscale_cam, _, main_category, comparison_categories = cam(
                     input_tensor=image_tensor,
+                    targets = None,
                     target_idx=target_idx,
-                    H=new_h,
-                    W=new_w,
+                    H=grid_height,
+                    W=grid_width,
                     comparison_categories=[1]
                 )
 
             grayscale_cam = grayscale_cam[0, :]
-            grayscale_cam_highres = cv2.resize(grayscale_cam, (ori_h, ori_w))
+            grayscale_cam_highres = cv2.resize(grayscale_cam, (original_width, original_height))
             results_by_mode[mode] = {
                 "highres": np.array([grayscale_cam_highres], dtype=np.float16),
                 "main_category": main_category,
@@ -146,6 +153,7 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
             }
 
         np.save(os.path.join(save_path, new_filename), results_by_mode)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Perform Finer-CAM on a dataset')

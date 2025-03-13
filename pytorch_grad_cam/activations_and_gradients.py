@@ -37,8 +37,8 @@ class ActivationsAndGradients:
         output.register_hook(_store_grad)
 
     def __call__(self, x, H, W):
-        self.height = H // 14
-        self.width = W // 14
+        self.height = H 
+        self.width = W 
         self.gradients = []
         self.activations = []
         return self.model(x)
