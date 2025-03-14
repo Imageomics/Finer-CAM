@@ -9,7 +9,6 @@ from pytorch_grad_cam.utils.model_targets import FinerWeightedTarget
 
 class FinerCAM:
     def __init__(self, model, target_layers, reshape_transform=None, base_method=GradCAM):
-        assert issubclass(base_method, BaseCAM), "Initialize FinerCAM with a given CAM method."
         self.base_cam = base_method(model, target_layers, reshape_transform)
         self.compute_input_gradient = self.base_cam.compute_input_gradient
         self.uses_gradients = self.base_cam.uses_gradients

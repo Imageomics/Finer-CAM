@@ -176,7 +176,7 @@ if __name__ == "__main__":
     model = model.to(device)
 
     target_layers = [model.blocks[-1].norm1]
-    cam = FinerCAM(GradCAM, model=model, target_layers=target_layers,
-                   reshape_transform=reshape_transform)
+    cam = FinerCAM(model=model, target_layers=target_layers,
+                   reshape_transform=reshape_transform, base_method= GradCAM)
 
     run_finer_cam_on_dataset(args.dataset_path, cam, preprocess, args.save_path, device)
