@@ -111,10 +111,12 @@ Thanks for their wonderful works.
 # Citation [![Paper](https://img.shields.io/badge/Paper-10.48550%2FarXiv.2501.11309-blue)](https://arxiv.org/abs/2501.11309)
 If you find this repository useful, please consider citing our work :pencil: and giving a star :star2: :
 ```
-@article{zhang2025finer,
-  title={Finer-CAM: Fine-grained Visual Interpretability through Class-Specific Gradient Refinements},
-  author={Ziheng Zhang and Jianyang Gu and Arpita Chowdhury and Zheda Mai and David Carlyn and Tanya Berger-Wolf and Yu Su and Wei-Lun Chao},
-  journal={arXiv preprint arXiv:2501.11309},
-  year={2025},
+@InProceedings{zhang2025finer,
+    author    = {Zhang, Ziheng and Gu, Jianyang and Chowdhury, Arpita and Mai, Zheda and Carlyn, David and Berger-Wolf, Tanya and Su, Yu and Chao, Wei-Lun},
+    title     = {Finer-CAM: Spotting the Difference Reveals Finer Details for Visual Explanation},
+    booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
+    month     = {June},
+    year      = {2025},
+    pages     = {9611-9620}
 }
 ```
