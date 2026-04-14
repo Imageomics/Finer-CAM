@@ -9,15 +9,17 @@ Finer-CAM retains CAM’s efficiency, offers precise localization, and adapts to
 ![images](imgs/pipeline.jpg)
 ## Update
 
-**`2025.3.13`**: Merged into [jacobgil/pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam), a wonderful library that supports multiple CAM-based methods.
-
-
+- **2025.03.13**: Merged into [`jacobgil/pytorch-grad-cam`](https://github.com/jacobgil/pytorch-grad-cam), a wonderful library that supports multiple CAM-based methods.  
+- **2026.04.14**: Added a new Hugging Face demo for the CUB classifier: [Finer-CAM Demo](https://huggingface.co/spaces/ZihengZ/FinerCAM)
 
 ## Demo 
 Experience the power of Finer-CAM with our interactive demos! Witness **accurate localization** of discriminative features.
 
-- 	Try the **multi-modal** demo and see how Finer-CAM activates detailed and relevant regions for diverse concepts: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1plLrL7vszVD5r71RGX3YOEXEBmITkT90?usp=sharing)
-- Test the **classifier** demo to explore class-specific activation maps with enhanced explainability: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1SAjRTmGy31G-GjtAc9pVH6isPjm1hWsj?usp=sharing)
+- Try the **multi-modal** demo and see how Finer-CAM activates detailed and relevant regions for diverse concepts:  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1plLrL7vszVD5r71RGX3YOEXEBmITkT90?usp=sharing)
+
+- Test the **CUB classifier** demo to visualize fine-grained, discriminative traits with enhanced interpretability:  
+   [![Hugging Face Demo](https://img.shields.io/badge/🤗%20HuggingFace-Demo-yellow)](https://huggingface.co/spaces/ZihengZ/FinerCAM)
 
 ## Reqirements
 
