@@ -9,8 +9,8 @@ Finer-CAM retains CAM’s efficiency, offers precise localization, and adapts to
 ![images](imgs/pipeline.jpg)
 ## Update
 
-- **2025.03.13**: Merged into [`jacobgil/pytorch-grad-cam`](https://github.com/jacobgil/pytorch-grad-cam), a wonderful library that supports multiple CAM-based methods.  
 - **2026.04.14**: Added a new Hugging Face demo for the CUB classifier: [Finer-CAM Demo](https://huggingface.co/spaces/ZihengZ/FinerCAM)
+- **2025.03.13**: Merged into [`jacobgil/pytorch-grad-cam`](https://github.com/jacobgil/pytorch-grad-cam), a wonderful library that supports multiple CAM-based methods.
 
 ## Demo 
 Experience the power of Finer-CAM with our interactive demos! Witness **accurate localization** of discriminative features.
