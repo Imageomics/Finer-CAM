@@ -21,11 +21,16 @@ Experience the power of Finer-CAM with our interactive demos! Witness **accurate
 - Test the **CUB classifier** demo to visualize fine-grained, discriminative traits with enhanced interpretability:  
    [![Hugging Face Demo](https://img.shields.io/badge/🤗%20HuggingFace-Demo-yellow)](https://huggingface.co/spaces/ZihengZ/FinerCAM)
 
-## Reqirements
+## Requirements
 
+Install the dependencies from this repo:
+
+```bash
+pip install -r requirements.txt
 ```
-pip install grad-cam
-```
+
+Run scripts and notebooks from the repository root so Python imports the local
+`pytorch_grad_cam` package in this tree.
 
 
 
