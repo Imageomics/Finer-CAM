@@ -109,23 +109,74 @@ class FasterRCNNBoxScoreTarget:
         return output
 
 class FinerWeightedTarget:
-    def __init__(self, main_category, comparison_categories, alpha):
+    """Target callable implementing the Finer-CAM weighting objective.
+
+    The target keeps a main category score while suppressing a set of
+    reference categories. Each reference term is weighted by a strength
+    parameter alpha, then normalized by the total weight. This produces
+    a relative objective that emphasizes fine-grained discrimination
+    between visually similar classes.
+    """
+
+    def __init__(self, main_category, reference_categories, alpha):
+        """Store the categories used by the Finer-CAM objective.
+
+        Args:
+            main_category: Index of the target category to highlight.
+            reference_categories: Category indices used as references to
+                suppress competing evidence in the attribution objective.
+            alpha: Scaling factor applied to each reference-category score
+                before subtracting it from the main-category score.
+        """
         self.main_category = main_category
-        self.comparison_categories = comparison_categories
+        self.reference_categories = reference_categories
         self.alpha = alpha
     
     def __call__(self, model_output):
+        """Evaluate the weighted Finer-CAM target on model logits.
+
+        Args:
+            model_output: A 1D tensor of class logits for a single sample or a
+                tensor whose last dimension indexes classes.
+
+        Returns:
+            A scalar-like tensor representing the weighted relative score
+            between the main category and the reference categories:
+
+            ``sum_i p_i * (w_n - alpha * w_i) / (sum_i p_i + 1e-9)``
+
+            where ``w_n`` is the main-category logit, ``w_i`` are the
+            reference-category logits, and ``p_i`` are softmax probabilities
+            of the reference categories. If a reference category index exceeds
+            the number of available classes, it is ignored. If no valid
+            reference categories remain, the target falls back to the
+            main-category score.
+        """
         select = lambda idx: model_output[idx] if len(model_output.shape) == 1 else model_output[..., idx]
-        
+
         wn = select(self.main_category)
-        
+        num_classes = model_output.shape[0] if len(model_output.shape) == 1 else model_output.shape[-1]
+        valid_reference_categories = [
+            idx for idx in self.reference_categories if idx < num_classes
+        ]
+
         if len(model_output.shape) == 1:
             prob = torch.softmax(model_output.unsqueeze(0), dim=-1).squeeze(0)
         else:
             prob = torch.softmax(model_output, dim=-1)
-            
-        weights = [prob[idx] if len(model_output.shape) == 1 else prob[..., idx] for idx in self.comparison_categories]
-        numerator = sum(w * (wn - self.alpha * select(idx)) for w, idx in zip(weights, self.comparison_categories))
+
+        if not valid_reference_categories:
+            return wn
+
+        weights = [
+            prob[idx] if len(model_output.shape) == 1 else prob[..., idx]
+            for idx in valid_reference_categories
+        ]
+        # Normalize the weighted margin so the target stays comparable across
+        # different reference sets and confidence distributions.
+        numerator = sum(
+            w * (wn - self.alpha * select(idx))
+            for w, idx in zip(weights, valid_reference_categories)
+        )
         denominator = sum(weights)
         return numerator / (denominator + 1e-9)
-
