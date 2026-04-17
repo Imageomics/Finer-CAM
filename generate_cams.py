@@ -115,33 +115,33 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
         for mode in modes:
             # When alpha = 0, FinerCAM degrades to Baseline
             if mode == "Baseline":
-                grayscale_cam, _, main_category, comparison_categories = cam(
+                grayscale_cam, _, main_category, reference_categories = cam(
                     input_tensor=image_tensor,
-                    targets = None,
+                    targets=None,
                     target_idx=target_idx,
                     H=grid_height,
                     W=grid_width,
-                    alpha=0
+                    alpha=0,
                 )
             elif mode == "Finer-Default":
-            # Our default setting: compare with the three most similar categories
-                grayscale_cam, _, main_category, comparison_categories = cam(
+                # Our default setting: use the three most similar categories as references.
+                grayscale_cam, _, main_category, reference_categories = cam(
                     input_tensor=image_tensor,
-                    targets = None,
+                    targets=None,
                     target_idx=target_idx,
                     H=grid_height,
                     W=grid_width,
-                    comparison_categories=[1,2,3]
+                    reference_category_ranks=[1, 2, 3],
                 )
             elif mode == "Finer-Compare":
-            # Compare only with the most similar category
-                grayscale_cam, _, main_category, comparison_categories = cam(
+                # Use only the most similar category as the reference.
+                grayscale_cam, _, main_category, reference_categories = cam(
                     input_tensor=image_tensor,
-                    targets = None,
+                    targets=None,
                     target_idx=target_idx,
                     H=grid_height,
                     W=grid_width,
-                    comparison_categories=[1]
+                    reference_category_ranks=[1],
                 )
 
             grayscale_cam = grayscale_cam[0, :]
@@ -149,7 +149,7 @@ def run_finer_cam_on_dataset(dataset_path, cam, preprocess, save_path, device):
             results_by_mode[mode] = {
                 "highres": np.array([grayscale_cam_highres], dtype=np.float16),
                 "main_category": main_category,
-                "comparison_categories": comparison_categories
+                "reference_categories": reference_categories,
             }
 
         np.save(os.path.join(save_path, new_filename), results_by_mode)
@@ -176,7 +176,11 @@ if __name__ == "__main__":
     model = model.to(device)
 
     target_layers = [model.blocks[-1].norm1]
-    cam = FinerCAM(model=model, target_layers=target_layers,
-                   reshape_transform=reshape_transform, base_method= GradCAM)
+    cam = FinerCAM(
+        model=model,
+        target_layers=target_layers,
+        reshape_transform=reshape_transform,
+        base_method=GradCAM,
+    )
 
     run_finer_cam_on_dataset(args.dataset_path, cam, preprocess, args.save_path, device)

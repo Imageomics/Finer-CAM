@@ -21,7 +21,7 @@ class FinerCAM:
     The class wraps a standard CAM implementation and replaces the target
     objective with :class:`~pytorch_grad_cam.utils.model_targets.FinerWeightedTarget`.
     When explicit ``targets`` are not provided, it derives a main category and a
-    set of comparison categories from the model outputs for each sample.
+    set of reference categories from the model outputs for each sample.
     """
 
     def __init__(self, model, target_layers, reshape_transform=None, base_method=GradCAM):
@@ -69,7 +69,7 @@ class FinerCAM:
                 wrapped CAM implementation.
             alpha: Scaling factor used in
                 :class:`~pytorch_grad_cam.utils.model_targets.FinerWeightedTarget`
-                for penalizing comparison categories.
+                for penalizing reference categories.
             reference_category_ranks: Indices into the sorted similarity list
                 used to choose reference categories when ``targets`` is
                 ``None``. Finer-CAM uses the second to fourth most similar
