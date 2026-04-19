@@ -22,7 +22,7 @@ Experience the power of Finer-CAM with our interactive demos! Witness **accurate
 - Test the **CUB classifier** demo to visualize fine-grained, discriminative traits with enhanced interpretability:  
    [![Hugging Face Demo](https://img.shields.io/badge/🤗%20HuggingFace-Demo-yellow)](https://huggingface.co/spaces/ZihengZ/FinerCAM)
 
-- Try the **Colab tutorial** and try Finer-CAM on your own data:  
+- Try the **Colab tutorial** and run Finer-CAM on your own data:  
   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Sd6X96rSx6jybG0GHHFr_1yymhFFdGRc?usp=sharing)
 
 ## Requirements
