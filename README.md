@@ -110,7 +110,9 @@ Automatic target construction uses `FinerWeightedTarget`, which implements the
 weighted relative objective used by Finer-CAM. For a main category `n` and a
 reference set `i`, it computes
 
-`sum_i p_i * (w_n - alpha * w_i) / (sum_i p_i + 1e-9)`
+```math
+\sum_i p_i (w_n - \alpha w_i) / (\sum_i p_i + 10^{-9})
+```
 
 where `w_n` is the main-category logit, `w_i` are the reference-category
 logits, and `p_i` are the softmax probabilities of the reference categories.
