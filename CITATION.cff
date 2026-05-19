@@ -1,14 +1,27 @@
 # This CITATION.cff file was generated with cffinit.
 # Visit https://bit.ly/cffinit to generate yours today!
 
-cff-version: 1.2.0
-title: >-
-  Finer-CAM : Spotting the Difference
-  Reveals Finer Details for Visual Explanation
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
-type: software
+abstract: "Class activation map (CAM) has been widely used to highlight image
+  regions that contribute to class predictions. Despite its simplicity and
+  computational efficiency, CAM often struggles to identify discriminative
+  regions that distinguish visually similar fine-grained classes. Prior
+  efforts address this limitation by introducing more sophisticated explanation
+  processes, but at the cost of extra complexity. In this paper, we propose
+  Finer-CAM, a method that retains CAM's efficiency while achieving precise
+  localization of discriminative regions. Our key insight is that the
+  deficiency of CAM lies not in 'how' it explains, but in 'what' it explains.
+  Specifically, previous methods attempt to identify all cues contributing
+  to the target class's logit value, which inadvertently also activates
+  regions predictive of visually similar classes. By explicitly comparing
+  the target class with similar classes and spotting their differences,
+  Finer-CAM suppresses features shared with other classes and emphasizes
+  the unique, discriminative details of the target class. Finer-CAM is easy
+  to implement, compatible with various CAM methods, and can be extended to
+  multi-modal models for accurate localization of specific concepts.
+  Additionally, Finer-CAM allows adjustable comparison strength, enabling users
+  to selectively highlight coarse object contours or fine discriminative details.
+  Quantitatively, we show that masking out the top 5% of activated pixels by
+  Finer-CAM results in a larger relative confidence drop compared to baselines."
 authors:
   - given-names: Ziheng
     family-names: Zhang
@@ -16,26 +29,67 @@ authors:
     family-names: Gu
   - given-names: Arpita
     family-names: Chowdhury
-  - given-names: Zheda
-    family-names: Mai
-  - given-names: David
-    family-names: Carlyn
-  - given-names: Tanya
-    family-names: Berger-Wolf
-  - given-names: Yu
-    family-names: Su
-  - given-names: Wei-Lun
-    family-names: Chao
+cff-version: 1.2.0
+date-released: "2026-05-19"
 identifiers:
-  - type: doi
-    value: 10.48550/arXiv.2501.11309
-repository-code: 'https://github.com/Imageomics/Finer-CAM'
+  - description: "The GitHub release URL of tag v1.0.0."
+    type: url
+    value: "https://github.com/Imageomics/Finer-CAM/releases/tag/v1.0.0"
+  - description: "The GitHub URL of the commit tagged with v1.0.0."
+    type: url
+    value: "https://github.com/Imageomics/Finer-CAM/tree/<commit-hash>"
 keywords:
   - explainable-ai
   - imageomics
   - fine-grained-classification
   - computer-vision
 license: Apache-2.0
-commit: Finer-CAM
+message: "If you find this software helpful in your research, please cite both the software and our paper."
+repository-code: "https://github.com/Imageomics/Finer-CAM"
+title: "Finer-CAM"
 version: 1.0.0
-date-released: '2025-02-25'
+#doi: <version-agnostic DOI from Zenodo>
+type: software
+# Only include the following if you want to present the paper citation instead of code on sidebar,
+# Better to include paper citation in README
+preferred-citation:
+  type: conference-paper
+  authors:
+    - given-names: Ziheng
+      family-names: Zhang
+    - given-names: Jianyang
+      family-names: Gu
+    - given-names: Arpita
+      family-names: Chowdhury
+    - given-names: Zheda
+      family-names: Mai
+    - given-names: David
+      family-names: Carlyn
+    - given-names: Tanya
+      family-names: Berger-Wolf
+    - given-names: Yu
+      family-names: Su
+    - given-names: Wei-Lun
+      family-names: Chao
+  collection-title: "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)"
+  collection-type: proceedings
+  conference:
+    name: CVPR 2025
+  pages: 9611-9620
+  start: 9611
+  end: 9620
+  title: "Finer-CAM: Spotting the Difference Reveals Finer Details for Visual Explanation"
+  year: 2025
+  doi:
+  # url: use only if DOI not available
+# References can be added here, but will only be read from the .zenodo.json file
+# Below example set to reference code repo, `preferred-citation` types apply
+references:
+  - authors:
+      - family-names: Gildenblat
+        given-names: Jacob
+    title: "PyTorch Library for CAM methods"
+    version: 1.5.4
+    type: software
+    url: https://github.com/jacobgil/pytorch-grad-cam
+    date-released: "2024-10-07"
