@@ -29,16 +29,6 @@ authors:
     family-names: Gu
   - given-names: Arpita
     family-names: Chowdhury
-  - given-names: Zheda
-    family-names: Mai
-  - given-names: David
-    family-names: Carlyn
-  - given-names: Tanya
-    family-names: Berger-Wolf
-  - given-names: Yu
-    family-names: Su
-  - given-names: Wei-Lun
-    family-names: Chao
 cff-version: 1.2.0
 date-released: "2026-05-19"
 identifiers:
