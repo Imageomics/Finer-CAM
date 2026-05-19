@@ -48,7 +48,7 @@ message: "If you find this software helpful in your research, please cite both t
 repository-code: "https://github.com/Imageomics/Finer-CAM"
 title: "Finer-CAM"
 version: 1.0.0
-doi: 10.5281/zenodo.20293631
+doi: 10.5281/zenodo.20293630
 type: software
 # Only include the following if you want to present the paper citation instead of code on sidebar,
 # Better to include paper citation in README
