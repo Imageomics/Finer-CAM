@@ -1,6 +1,9 @@
 
-# Finer-CAM : Spotting the Difference Reveals Finer Details for Visual Explanation [CVPR 2025]
-Official implementation of "Finer-CAM [[arxiv]](https://arxiv.org/pdf/2501.11309)".
+# Finer-CAM : Spotting the Difference Reveals Finer Details for Visual Explanation [CVPR 2025] [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20293630-blue)](https://doi.org/10.5281/zenodo.20293630)
+
+[![Paper](https://img.shields.io/badge/Paper-10.1109%2FCVPR52734.2025.00898-blue)](https://doi.org/10.1109/CVPR52734.2025.00898) [![Arxiv](https://img.shields.io/badge/arXiv-2501.11309-red)](https://arxiv.org/pdf/2501.11309)
+
+Official implementation of "Finer-CAM".
 
 CAM methods highlight image regions influencing predictions but often struggle in fine-grained tasks due to shared feature activation across similar classes. We propose **Finer-CAM**, which explicitly compares the target class with similar ones, suppressing shared features and emphasizing unique, discriminative details.
 
@@ -217,7 +220,7 @@ We utilized code from:
 Thanks for their wonderful works.
 
 
-# Citation [![Paper](https://img.shields.io/badge/Paper-10.48550%2FarXiv.2501.11309-blue)](https://arxiv.org/abs/2501.11309)
+# Citation [![Paper](https://img.shields.io/badge/Paper-10.1109%2FCVPR52734.2025.00898-blue)](https://doi.org/10.1109/CVPR52734.2025.00898) [![Arxiv](https://img.shields.io/badge/arXiv-2501.11309-red)](https://arxiv.org/pdf/2501.11309)
 If you find this repository useful, please consider citing our work :pencil: and giving a star :star2: :
 ```
 @InProceedings{zhang2025finer,
@@ -226,6 +229,7 @@ If you find this repository useful, please consider citing our work :pencil: and
     booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
     month     = {June},
     year      = {2025},
-    pages     = {9611-9620}
+    pages     = {9611-9620},
+    doi       = {10.1109/CVPR52734.2025.00898}
 }
 ```

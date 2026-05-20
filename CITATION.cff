@@ -37,7 +37,7 @@ identifiers:
     value: "https://github.com/Imageomics/Finer-CAM/releases/tag/v1.0.0"
   - description: "The GitHub URL of the commit tagged with v1.0.0."
     type: url
-    value: "https://github.com/Imageomics/Finer-CAM/tree/<commit-hash>"
+    value: "https://github.com/Imageomics/Finer-CAM/tree/934e283dd6d26d0df53db0f54c6b3f04286dc698"
 keywords:
   - explainable-ai
   - imageomics
@@ -48,7 +48,7 @@ message: "If you find this software helpful in your research, please cite both t
 repository-code: "https://github.com/Imageomics/Finer-CAM"
 title: "Finer-CAM"
 version: 1.0.0
-#doi: <version-agnostic DOI from Zenodo>
+doi: 10.5281/zenodo.20293630
 type: software
 # Only include the following if you want to present the paper citation instead of code on sidebar,
 # Better to include paper citation in README
@@ -80,7 +80,7 @@ preferred-citation:
   end: 9620
   title: "Finer-CAM: Spotting the Difference Reveals Finer Details for Visual Explanation"
   year: 2025
-  doi:
+  doi: 10.1109/CVPR52734.2025.00898
   # url: use only if DOI not available
 # References can be added here, but will only be read from the .zenodo.json file
 # Below example set to reference code repo, `preferred-citation` types apply
